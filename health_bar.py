@@ -17,6 +17,16 @@ current_hp = 40
 max_hp = 100
 status = "FRZ"  # PAR, BRN, PSN, TOX, SLP, FRZ
 
+# Stat changes
+stat_changes = {
+    "HP": 1.0,
+    "ATK": 1.5,
+    "DEF": 0.5,
+    "SPA": 4.0,
+    "SPD": 1.5,
+    "SPE": 2.0
+}
+
 # Colors
 WHITE = (255, 255, 255)
 WHITE_30 = (255, 255, 255, 76)
@@ -25,10 +35,12 @@ BLACK_30 = (0, 0, 0, 51)
 GRAY = (50, 50, 50)
 GREEN = (0, 200, 0)
 LIGHT_GREEN = (150, 255, 150)
+PALE_GREEN = (229,255,224,255)
 YELLOW = (255, 200, 0)
 LIGHT_YELLOW = (255, 255, 150)
 RED = (200, 50, 50)
 LIGHT_RED = (255, 150, 150)
+PALE_RED = (255,229,224,255)
 
 # Helpers
 def get_status_color(status):
@@ -43,9 +55,9 @@ def get_status_color(status):
     return status_colors.get(status.upper(), GRAY)
 
 def get_hp_color(ratio):
-    if ratio > 0.45:
+    if ratio > 0.66:
         return GREEN
-    elif ratio > 0.2:
+    elif ratio > 0.33:
         return YELLOW
     else:
         return RED
@@ -99,6 +111,43 @@ def draw_hp_bar(surface, x, y, width, height, ratio):
     pygame.draw.polygon(surface, BLACK, outline_points, width=4)
 
 
+def draw_stat_boxes(surface, start_x, start_y, spacing_x=70, spacing_y=28, box_width=65, box_height=24):
+    # Draw the tiny rounded boxes for stat changes, in 3 columns and 2 rows max
+    font_small = pygame.font.SysFont("Segoe UI", 18, bold=True)
+
+    # Filter out stats with no change (i.e., factor == 1)
+    filtered_stats = [(stat, change) for stat, change in stat_changes.items() if change != 1.0]
+
+    for idx, (stat, change) in enumerate(filtered_stats):
+        col = idx % 3  # 3 columns max
+        row = idx // 3  # 2 rows max since max 6 stats
+
+        x = start_x + col * (spacing_x + 15)
+        y = start_y + row * (spacing_y + 3)
+
+        # Choose color based on stat change value
+        if change > 1.0:
+            bg_color = PALE_GREEN
+            border_color = GREEN
+            text_color = GREEN
+        else:  # change < 1.0 (we already filtered no change = 1.0)
+            bg_color = PALE_RED
+            border_color = RED
+            text_color = RED
+
+        border = pygame.Rect(x, y, box_width+14, box_height)
+        rect = pygame.Rect(x+1, y+1, box_width+12, box_height-2)
+        draw_rounded_rect(surface, border_color, border, radius=6)
+        draw_rounded_rect(surface, bg_color, rect, radius=5)
+
+        # Render text like "ATK x1.5"
+        text_str = f"{change:.1f}x{stat}"
+        text_surf = font_small.render(text_str, True, text_color)
+        text_rect = text_surf.get_rect(center=rect.center)
+
+        surface.blit(text_surf, text_rect)
+
+
 def draw_status_box():
     bar_x, bar_y = 70, 120
     bar_width, bar_height = 300, 22
@@ -123,7 +172,7 @@ def draw_status_box():
     draw_rounded_rect(bg_surface, WHITE_30, bg_surface.get_rect(), radius=16)
     screen.blit(bg_surface, (50, 100))
 
-    border_surface = pygame.Surface((450, 100), pygame.SRCALPHA)
+    border_surface = pygame.Surface((450, 120), pygame.SRCALPHA)
     draw_rounded_rect(border_surface, BLACK_30, border_surface.get_rect(), radius=16)
     screen.blit(border_surface, (50, 100))
 
@@ -145,6 +194,18 @@ def draw_status_box():
         status_rect = pygame.Rect(bar_x, bar_y + 35, box_w, box_h)
         draw_rounded_rect(screen, status_color, status_rect, radius=10)
         screen.blit(status_text, (status_rect.x + padding, status_rect.y + 4))
+
+        # Draw stat boxes to the right of status box, spaced by 10 px
+        stat_box_start_x = status_rect.right + 10
+        stat_box_start_y = status_rect.y
+        draw_stat_boxes(screen, stat_box_start_x, stat_box_start_y)
+    else:
+        # If no status, place stat boxes where status box would be
+        bar_x, bar_y = 70, 120
+        stat_box_start_x = bar_x
+        stat_box_start_y = bar_y + 35
+        draw_stat_boxes(screen, stat_box_start_x, stat_box_start_y)
+
 
 # Game loop
 clock = pygame.time.Clock()
