@@ -7,8 +7,8 @@ screen = pygame.display.set_mode((500, 300))
 pygame.display.set_caption("Pokémon HUD")
 
 # Font
-font = pygame.font.SysFont("Segoe UI", 22)
-name_font = pygame.font.SysFont("Segoe UI", 26, bold=True)
+font = pygame.font.SysFont("Trebuchet MS", 24, bold=True)
+name_font = pygame.font.SysFont("Verdana", 26, bold=True)
 
 # Data
 pokemon_name = "Spoink"
@@ -77,7 +77,6 @@ def draw_hp_bar(surface, x, y, width, height, ratio):
     slant = 20  # Slant offset
     fill_width = width * ratio
 
-    # Outline points (for both bar and final stroke)
     outline_points = [
         (x + slant, y),
         (x + width, y),
@@ -85,10 +84,10 @@ def draw_hp_bar(surface, x, y, width, height, ratio):
         (x, y + height)
     ]
 
-    # Draw base (gray background)
+    # Base
     pygame.draw.polygon(surface, GRAY, outline_points)
 
-    # Filled portion (main HP fill)
+    # Filled portion
     fill_right = x + fill_width
     fill_points = [
         (x + slant, y),
@@ -98,7 +97,7 @@ def draw_hp_bar(surface, x, y, width, height, ratio):
     ]
     pygame.draw.polygon(surface, get_hp_color(ratio), fill_points)
 
-    # Highlight portion (top shine)
+    # Highlight portion
     highlight_points = [
         (x + (slant // 2) + 10, y + 2),
         (min(fill_right - 2, x + width - 20), y + 2),
@@ -106,21 +105,18 @@ def draw_hp_bar(surface, x, y, width, height, ratio):
         (x + 10, y + height // 2)
     ]
     pygame.draw.polygon(surface, get_light_color(ratio), highlight_points)
-
-    # Draw black outline on top
     pygame.draw.polygon(surface, BLACK, outline_points, width=4)
 
 
 def draw_stat_boxes(surface, start_x, start_y, spacing_x=70, spacing_y=28, box_width=65, box_height=24):
-    # Draw the tiny rounded boxes for stat changes, in 3 columns and 2 rows max
-    font_small = pygame.font.SysFont("Segoe UI", 18, bold=True)
+    font_small = pygame.font.SysFont("Verdana", 17, bold=True)
 
-    # Filter out stats with no change (i.e., factor == 1)
+    # Filter out stats with no change
     filtered_stats = [(stat, change) for stat, change in stat_changes.items() if change != 1.0]
 
     for idx, (stat, change) in enumerate(filtered_stats):
-        col = idx % 3  # 3 columns max
-        row = idx // 3  # 2 rows max since max 6 stats
+        col = idx % 3  # 3 columns 
+        row = idx // 3  # 2 rows 
 
         x = start_x + col * (spacing_x + 15)
         y = start_y + row * (spacing_y + 3)
@@ -130,7 +126,7 @@ def draw_stat_boxes(surface, start_x, start_y, spacing_x=70, spacing_y=28, box_w
             bg_color = PALE_GREEN
             border_color = GREEN
             text_color = GREEN
-        else:  # change < 1.0 (we already filtered no change = 1.0)
+        else: 
             bg_color = PALE_RED
             border_color = RED
             text_color = RED
@@ -140,7 +136,7 @@ def draw_stat_boxes(surface, start_x, start_y, spacing_x=70, spacing_y=28, box_w
         draw_rounded_rect(surface, border_color, border, radius=6)
         draw_rounded_rect(surface, bg_color, rect, radius=5)
 
-        # Render text like "ATK x1.5"
+        # Render text 
         text_str = f"{change:.1f}x{stat}"
         text_surf = font_small.render(text_str, True, text_color)
         text_rect = text_surf.get_rect(center=rect.center)
@@ -195,12 +191,12 @@ def draw_status_box():
         draw_rounded_rect(screen, status_color, status_rect, radius=10)
         screen.blit(status_text, (status_rect.x + padding, status_rect.y + 4))
 
-        # Draw stat boxes to the right of status box, spaced by 10 px
+        # Draw stat boxes to the right of status box
         stat_box_start_x = status_rect.right + 10
         stat_box_start_y = status_rect.y
         draw_stat_boxes(screen, stat_box_start_x, stat_box_start_y)
     else:
-        # If no status, place stat boxes where status box would be
+        # If no status
         bar_x, bar_y = 70, 120
         stat_box_start_x = bar_x
         stat_box_start_y = bar_y + 35
