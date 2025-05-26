@@ -11,13 +11,13 @@ font = pygame.font.SysFont("Trebuchet MS", 24, bold=True)
 name_font = pygame.font.SysFont("Verdana", 26, bold=True)
 
 # Data
-pokemon_name = "Spoink"
-lvl = "Lvl: 53"
-current_hp = 40
-max_hp = 100
-status = "FRZ"  # PAR, BRN, PSN, TOX, SLP, FRZ
+pokemon_name = "Spoink" # POKEMON NAME
+lvl = "Lvl: 53"         # LEVEL
+current_hp = 40         # CURRENT HP
+max_hp = 100            # MAX HP
+status = "FRZ"          # STATUS
 
-# Stat changes
+# STAT CHANGES
 stat_changes = {
     "HP": 1.0,
     "ATK": 1.5,
