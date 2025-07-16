@@ -163,7 +163,5 @@ img = generate_hud(
     }
 )
 
-# Save the result
-output_path = "pokemon_hud.png"
-img.save(output_path)
-print(f"Successfully generated Pokémon HUD at {output_path}")
+# Returns the image
+return img
