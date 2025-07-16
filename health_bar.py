@@ -146,6 +146,7 @@ def generate_hud(name, level, current_hp, max_hp, status=None, stat_changes=None
     return img
 
 # Example usage with all stats
+# REPLACE THESE VALUES WITH THE ACTUAL POKE DETAILS
 img = generate_hud(
     name="Pikachu",
     level=35,
