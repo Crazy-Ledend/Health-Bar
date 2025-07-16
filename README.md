@@ -1,113 +1,110 @@
-# Health-Bar
-A health bar made especially for pokemon battles but can be modified for other battles too
+# Pokémon Battle HUD Generator  
 
------------------------------------------------------------------------
+A Python script that generates a Pokémon-style battle HUD (Heads-Up Display) using the Python Imaging Library (PIL).  
 
-# 🖼️ Pokémon HUD with Pygame
+![Example Output](pokemon_hud.png)  
 
-A dynamic, visually styled HUD (Heads-Up Display) built with Pygame, mimicking the classic Pokémon battle interface. It displays Pokémon name, level, current HP, status conditions, and stat changes in a compact status bar format.
+## Features  
+- Customizable Pokémon name and level  
+- Dynamic HP bar with color changes based on remaining HP  
+- Status condition display (PAR, BRN, PSN, TOX, SLP, FRZ)  
+- Stat change indicators (boosts/reductions)  
+- Clean, rounded UI elements  
 
----
+## Requirements  
+- Python 3.x  
+- Pillow (PIL) library  
 
-## 📦 Features
+## Installation  
+```bash
+pip install pillow
+```
 
-* Custom Pokémon name and level display.
-* Slanted **HP bar** with animated fill and highlight effect.
-* Colored **status condition** box (e.g., FRZ, PAR, BRN).
-* Optional stat change boxes (e.g., 2.0xATK, 0.5xDEF).
-* Rounded box styling and shadow layers for a clean UI look.
-* Modular layout for easy integration into battle systems.
-
----
-
-## ✍️ Configurable Values
-
-You can modify these **variables** at the top of the script to dynamically update the HUD:
-
+## Usage  
 ```python
-pokemon_name = "Spoink"  # Pokémon Name
-lvl = "Lvl: 53"          # Pokémon Level Display
-current_hp = 40          # Current HP
-max_hp = 100             # Max HP
-status = "FRZ"           # Status condition (e.g., PAR, BRN, PSN, FRZ, TOX, SLP)
+from pokemon_hud import generate_hud
 
-stat_changes = {         # Stat stage multipliers (default 1.0 = no change)
-    "HP": 1.0,
-    "ATK": 1.5,
-    "DEF": 0.5,
-    "SPA": 4.0,
-    "SPD": 1.5,
-    "SPE": 2.0
-}
+# Generate a HUD image
+img = generate_hud(
+    name="Pikachu",
+    level=35,
+    current_hp=75,
+    max_hp=100,
+    status="FRZ",  # Optional status condition
+    stat_changes={  # Optional stat changes
+        "ATK": 1.5, 
+        "DEF": 0.5,
+        "SPA": 2.0,
+        "SPD": 0.25,
+        "SPE": 3.0
+    }
+)
+
+# Save the image
+img.save("pokemon_hud.png")
 ```
 
----
+## Parameters  
+| Parameter      | Type   | Description                          | Required |
+|---------------|--------|--------------------------------------|----------|
+| `name`        | str    | Pokémon name                         | Yes      |
+| `level`       | int    | Pokémon level                        | Yes      |
+| `current_hp`  | int    | Current HP value                     | Yes      |
+| `max_hp`      | int    | Maximum HP value                     | Yes      |
+| `status`      | str    | Status condition (PAR/BRN/PSN/etc.)  | No       |
+| `stat_changes`| dict   | Dictionary of stat modifiers         | No       |
 
-## 🖼️ Pokémon Icon (Optional)
+## Stat Change Format  
+Pass stat changes as a dictionary with keys:  
+- `HP`, `ATK`, `DEF`, `SPA`, `SPD`, `SPE`  
 
-To display an icon beside the name:
+Values should be multipliers (e.g., `1.5` for +1 stage, `0.5` for -1 stage)  
 
-* Save a Pokémon image as `"Gallade.png"` (or change filename inside the `draw_status_box()` function).
-* Recommended size before scaling: \~96×96px.
-* The icon is auto-scaled to 30×30px and positioned left of the name.
+## Customization  
+You can modify:  
+- Colors in the constants section  
+- Fonts (defaults to Arial, falls back to system default)  
+- Dimensions and positioning of elements  
 
----
+## Example Output  
+The included example generates a HUD for a level 35 Pikachu with:  
+- 75/100 HP  
+- Frozen status  
+- Stat changes:  
+  - ATK +1.5x  
+  - DEF -0.5x  
+  - SPA +2.0x  
+  - SPD -0.25x  
+  - SPE +3.0x  
+## Returns
+The final hud image is returned
 
-## 🎨 Color Indicators
+## License  
+MIT License - Free for personal and commercial use
 
-* **HP bar** colors:
+## Attribution Requirement  
 
-  * Green (>66%)
-  * Yellow (33–66%)
-  * Red (<33%)
-* **Status box** colors:
+If you use this code in your project (modified or unmodified), you **must** include:  
 
-  * Custom per condition (e.g., blue for FRZ, orange for BRN)
-* **Stat change boxes**:
+1. **Visible credit** in your project's documentation/README with:  
+   ```
+   Pokémon HUD Generator by Crazy Pokeking / Crazy-Ledend 
+   ```  
 
-  * Green = buffed stat
-  * Red = debuffed stat
+2. **A link back** to this repository:  
+   ```
+   https://github.com/Crazy-Ledend/Health-Bar
+   ```  
 
----
-
-## 🧩 Dependencies
-
-* Python 3.x
-* `pygame` library
-
-Install pygame using:
-
-```bash
-pip install pygame
-```
-
----
-
-## ▶️ How to Run
-
-Save the file as `hud.py`, then run:
-
-```bash
-python hud.py
-```
-
-A window will open showing the HUD. Close it to exit.
-
----
-
-## 🧠 Logic Overview
-
-* `draw_status_box()` handles rendering the entire HUD, including the HP bar, name, level, status, and stat boxes.
-* `draw_hp_bar()` renders the slanted HP bar with shaded highlights.
-* `draw_stat_boxes()` arranges buffs/debuffs into columns dynamically.
-* Utility functions manage color mapping and rectangle drawing.
+**Example Attribution:**  
+> "This project uses the Pokémon HUD Generator by Crazy Pokeking / Crazy-Ledend.  
+> Source: [github.com/Crazy-Ledend/Health-Bar](https://github.com/Crazy-Ledend/Health-Bar)"  
 
 ---
 
-## 🧪 Tips for Integration
+### Why?  
+- Ensures your work is recognized.  
+- Helps others find the original source.  
+- Keeps it open-source friendly!  
 
-You can:
-
-* Replace the static variables with dynamic values from your battle engine.
-* Customize fonts, sizes, and colors to match your game’s aesthetic.
-* Modularize each draw function for reuse in other scenes.
+Let me know if you'd like to adjust the wording (e.g., add a license badge or stricter terms).
