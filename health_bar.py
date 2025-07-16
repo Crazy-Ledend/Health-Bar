@@ -1,218 +1,168 @@
-import pygame
-import sys
+from PIL import Image, ImageDraw, ImageFont
+import os
 
-# Setup
-pygame.init()
-screen = pygame.display.set_mode((500, 300))
-pygame.display.set_caption("Pokémon HUD")
-
-# Font
-font = pygame.font.SysFont("Trebuchet MS", 24, bold=True)
-name_font = pygame.font.SysFont("Verdana", 26, bold=True)
-
-# Data
-pokemon_name = "Spoink" # POKEMON NAME
-lvl = "Lvl: 53"         # LEVEL
-current_hp = 40         # CURRENT HP
-max_hp = 100            # MAX HP
-status = "FRZ"          # STATUS
-
-# STAT CHANGES
-stat_changes = {
-    "HP": 1.0,
-    "ATK": 1.5,
-    "DEF": 0.5,
-    "SPA": 4.0,
-    "SPD": 1.5,
-    "SPE": 2.0
-}
-
-# Colors
-WHITE = (255, 255, 255)
+# Constants
+WHITE = (255, 255, 255, 255)
 WHITE_30 = (255, 255, 255, 76)
-BLACK = (0, 0, 0)
+BLACK = (0, 0, 0, 255)
 BLACK_30 = (0, 0, 0, 51)
-GRAY = (50, 50, 50)
-GREEN = (0, 200, 0)
-LIGHT_GREEN = (150, 255, 150)
-PALE_GREEN = (229,255,224,255)
-YELLOW = (255, 200, 0)
-LIGHT_YELLOW = (255, 255, 150)
-RED = (200, 50, 50)
-LIGHT_RED = (255, 150, 150)
-PALE_RED = (255,229,224,255)
+GRAY = (50, 50, 50, 255)
+GREEN = (0, 200, 0, 255)
+LIGHT_GREEN = (150, 255, 150, 255)
+PALE_GREEN = (229, 255, 224, 255)
+YELLOW = (255, 200, 0, 255)
+LIGHT_YELLOW = (255, 255, 150, 255)
+RED = (200, 50, 50, 255)
+LIGHT_RED = (255, 150, 150, 255)
+PALE_RED = (255, 229, 224, 255)
+
+# Fonts
+def load_fonts():
+    try:
+        name_font = ImageFont.truetype("arialbd.ttf", 26)
+        main_font = ImageFont.truetype("arial.ttf", 20)
+        stat_font = ImageFont.truetype("arial.ttf", 17)
+    except:
+        name_font = ImageFont.load_default()
+        main_font = ImageFont.load_default()
+        stat_font = ImageFont.load_default()
+    return name_font, main_font, stat_font
 
 # Helpers
 def get_status_color(status):
-    status_colors = {
-        "PAR": (184,184,24,255),
-        "BRN": (224,112,80,255),
-        "PSN": (192,96,192,255),
-        "TOX": (192,96,192,255),
-        "SLP": (160,160,136,255),
-        "FRZ": (136,176,224,255),
-    }
-    return status_colors.get(status.upper(), GRAY)
+    return {
+        "PAR": (184, 184, 24, 255),
+        "BRN": (224, 112, 80, 255),
+        "PSN": (192, 96, 192, 255),
+        "TOX": (192, 96, 192, 255),
+        "SLP": (160, 160, 136, 255),
+        "FRZ": (136, 176, 224, 255),
+    }.get(status.upper(), GRAY)
 
 def get_hp_color(ratio):
-    if ratio > 0.66:
-        return GREEN
-    elif ratio > 0.33:
-        return YELLOW
-    else:
-        return RED
+    return GREEN if ratio > 0.66 else YELLOW if ratio > 0.33 else RED
 
 def get_light_color(ratio):
-    if ratio > 0.45:
-        return LIGHT_GREEN
-    elif ratio > 0.2:
-        return LIGHT_YELLOW
-    else:
-        return LIGHT_RED
+    return LIGHT_GREEN if ratio > 0.45 else LIGHT_YELLOW if ratio > 0.2 else LIGHT_RED
 
-def draw_rounded_rect(surface, color, rect, radius=12):
-    pygame.draw.rect(surface, color, rect, border_radius=radius)
+def draw_rounded_rectangle(draw, xy, radius, fill=None, outline=None, width=1):
+    x1, y1, x2, y2 = xy
+    draw.rectangle((x1 + radius, y1, x2 - radius, y2), fill=fill, outline=outline, width=width)
+    draw.rectangle((x1, y1 + radius, x2, y2 - radius), fill=fill, outline=outline, width=width)
+    draw.pieslice((x1, y1, x1 + 2*radius, y1 + 2*radius), 180, 270, fill=fill, outline=outline)
+    draw.pieslice((x2 - 2*radius, y1, x2, y1 + 2*radius), 270, 360, fill=fill, outline=outline)
+    draw.pieslice((x1, y2 - 2*radius, x1 + 2*radius, y2), 90, 180, fill=fill, outline=outline)
+    draw.pieslice((x2 - 2*radius, y2 - 2*radius, x2, y2), 0, 90, fill=fill, outline=outline)
 
-def draw_hp_bar(surface, x, y, width, height, ratio):
-    slant = 20  # Slant offset
+def draw_hp_bar(draw, x, y, width, height, ratio):
+    slant = 20
     fill_width = width * ratio
-
-    outline_points = [
-        (x + slant, y),
-        (x + width, y),
-        (x + width - slant, y + height),
-        (x, y + height)
-    ]
-
-    # Base
-    pygame.draw.polygon(surface, GRAY, outline_points)
-
-    # Filled portion
     fill_right = x + fill_width
-    fill_points = [
-        (x + slant, y),
-        (min(fill_right, x + width), y),
-        (max(x, min(fill_right - slant, x + width - slant)), y + height),
-        (x, y + height)
-    ]
-    pygame.draw.polygon(surface, get_hp_color(ratio), fill_points)
 
-    # Highlight portion
-    highlight_points = [
+    base = [
+        (x + slant, y), (x + width, y),
+        (x + width - slant, y + height), (x, y + height)
+    ]
+    fill = [
+        (x + slant, y), (min(fill_right, x + width), y),
+        (max(x, min(fill_right - slant, x + width - slant)), y + height), (x, y + height)
+    ]
+    highlight = [
         (x + (slant // 2) + 10, y + 2),
         (min(fill_right - 2, x + width - 20), y + 2),
         (max(x, min(fill_right - (slant // 2) - 20, x + width - (slant // 2) - 20)), y + height // 2),
         (x + 10, y + height // 2)
     ]
-    pygame.draw.polygon(surface, get_light_color(ratio), highlight_points)
-    pygame.draw.polygon(surface, BLACK, outline_points, width=4)
 
+    draw.polygon(base, fill=GRAY)
+    draw.polygon(fill, fill=get_hp_color(ratio))
+    draw.polygon(highlight, fill=get_light_color(ratio))
+    draw.polygon(base, outline=BLACK, width=4)
 
-def draw_stat_boxes(surface, start_x, start_y, spacing_x=70, spacing_y=28, box_width=65, box_height=24):
-    font_small = pygame.font.SysFont("Verdana", 17, bold=True)
+def draw_stat_boxes(draw, stat_changes, x, y, font):
+    spacing_x = 70
+    spacing_y = 28
+    box_width = 65
+    box_height = 24
+    
+    # Standard stat order
+    stat_order = ['HP', 'ATK', 'DEF', 'SPA', 'SPD', 'SPE']
+    
+    # Convert input to uppercase and filter unchanged stats
+    stat_changes = {k.upper(): v for k, v in stat_changes.items()}
+    filtered_stats = [(stat, stat_changes[stat]) for stat in stat_order 
+                     if stat in stat_changes and stat_changes[stat] != 1.0]
+    
+    for i, (stat, val) in enumerate(filtered_stats):
+        col, row = i % 3, i // 3
+        bx = x + col * (spacing_x + 15)
+        by = y + row * spacing_y
 
-    # Filter out stats with no change
-    filtered_stats = [(stat, change) for stat, change in stat_changes.items() if change != 1.0]
+        bg, border, txt = ((PALE_GREEN, GREEN, GREEN) if val > 1.0 
+                          else (PALE_RED, RED, RED))
+        
+        # Draw stat box
+        draw_rounded_rectangle(draw, (bx, by, bx + box_width + 14, by + box_height), 6, fill=border)
+        draw_rounded_rectangle(draw, (bx + 1, by + 1, bx + box_width + 13, by + box_height - 1), 5, fill=bg)
 
-    for idx, (stat, change) in enumerate(filtered_stats):
-        col = idx % 3  # 3 columns 
-        row = idx // 3  # 2 rows 
+        # Draw stat text
+        label = f"{val:.1f}x{stat}"
+        tw = font.getlength(label)
+        draw.text((bx + (box_width + 14 - tw) / 2, by + 2), label, fill=txt, font=font)
 
-        x = start_x + col * (spacing_x + 15)
-        y = start_y + row * (spacing_y + 3)
+def generate_hud(name, level, current_hp, max_hp, status=None, stat_changes=None):
+    name_font, main_font, stat_font = load_fonts()
+    ratio = current_hp / max_hp if max_hp else 0
 
-        # Choose color based on stat change value
-        if change > 1.0:
-            bg_color = PALE_GREEN
-            border_color = GREEN
-            text_color = GREEN
-        else: 
-            bg_color = PALE_RED
-            border_color = RED
-            text_color = RED
+    img = Image.new("RGBA", (500, 150), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
 
-        border = pygame.Rect(x, y, box_width+14, box_height)
-        rect = pygame.Rect(x+1, y+1, box_width+12, box_height-2)
-        draw_rounded_rect(surface, border_color, border, radius=6)
-        draw_rounded_rect(surface, bg_color, rect, radius=5)
+    # Background
+    draw_rounded_rectangle(draw, (0, 0, 450, 100), 16, fill=BLACK_30)
+    draw_rounded_rectangle(draw, (25, 10, 425, 90), 16, fill=WHITE_30)
 
-        # Render text 
-        text_str = f"{change:.1f}x{stat}"
-        text_surf = font_small.render(text_str, True, text_color)
-        text_rect = text_surf.get_rect(center=rect.center)
-
-        surface.blit(text_surf, text_rect)
-
-
-def draw_status_box():
-    bar_x, bar_y = 70, 120
-    bar_width, bar_height = 300, 22
-    ratio = current_hp / max_hp
-
-    # Icon
-    try:
-        poke_icon = pygame.image.load("Gallade.png").convert_alpha()
-        poke_icon = pygame.transform.scale(poke_icon, (30, 30))
-        screen.blit(poke_icon, (bar_x - 20, bar_y - 48))
-    except:
-        pass
-
-    # Name
-    name_text = name_font.render(pokemon_name, True, BLACK)
-    screen.blit(name_text, (bar_x, bar_y - 43))
-    lvl_text = name_font.render(lvl, True, BLACK)
-    screen.blit(lvl_text, (bar_x+320, bar_y - 43))
-
-    # HUD Background
-    bg_surface = pygame.Surface((400, 100), pygame.SRCALPHA)
-    draw_rounded_rect(bg_surface, WHITE_30, bg_surface.get_rect(), radius=16)
-    screen.blit(bg_surface, (50, 100))
-
-    border_surface = pygame.Surface((450, 120), pygame.SRCALPHA)
-    draw_rounded_rect(border_surface, BLACK_30, border_surface.get_rect(), radius=16)
-    screen.blit(border_surface, (50, 100))
-
+    # Name and Level
+    draw.text((40, 15), name.title(), font=name_font, fill=BLACK)
+    draw.text((300, 15), f"Lvl: {level}", font=name_font, fill=BLACK)
+    
     # HP Bar
-    draw_hp_bar(screen, bar_x, bar_y, bar_width, bar_height, ratio)
+    draw_hp_bar(draw, 40, 55, 280, 22, ratio)
+    draw.text((325, 53), f"[{current_hp} / {max_hp}]", font=main_font, fill=WHITE)
 
-    # HP Text
-    hp_text = font.render(f"[{current_hp} / {max_hp}]", True, BLACK)
-    screen.blit(hp_text, (bar_x + bar_width + 15, bar_y))
-
-    # Status box
+    # Status and Stat Changes
     if status:
-        status_color = get_status_color(status)
-        status_text = font.render(status.upper(), True, WHITE)
+        color = get_status_color(status)
         padding = 10
-        text_w, text_h = status_text.get_size()
-        box_w = text_w + padding * 2
-        box_h = text_h + 8
-        status_rect = pygame.Rect(bar_x, bar_y + 35, box_w, box_h)
-        draw_rounded_rect(screen, status_color, status_rect, radius=10)
-        screen.blit(status_text, (status_rect.x + padding, status_rect.y + 4))
+        status_txt = status.upper()
+        sw = main_font.getlength(status_txt)
+        box_w, box_h = sw + padding * 2, 32
+        draw_rounded_rectangle(draw, (55, 95, 60 + box_w, 85 + box_h), 10, fill=color)
+        draw.text((60 + padding, 95), status_txt, font=main_font, fill=WHITE)
 
-        # Draw stat boxes to the right of status box
-        stat_box_start_x = status_rect.right + 10
-        stat_box_start_y = status_rect.y
-        draw_stat_boxes(screen, stat_box_start_x, stat_box_start_y)
-    else:
-        # If no status
-        bar_x, bar_y = 70, 120
-        stat_box_start_x = bar_x
-        stat_box_start_y = bar_y + 35
-        draw_stat_boxes(screen, stat_box_start_x, stat_box_start_y)
+    if stat_changes:
+        start_x = 60 + box_w + 10 if status else 60
+        draw_stat_boxes(draw, stat_changes, start_x, 93, stat_font)
 
+    return img
 
-# Game loop
-clock = pygame.time.Clock()
-while True:
-    screen.fill((235, 235, 235))
+# Example usage with all stats
+img = generate_hud(
+    name="Pikachu",
+    level=35,
+    current_hp=75,
+    max_hp=100,
+    status="FRZ",
+    stat_changes={
+        "HP": 1.0,
+        "ATK": 1.5, 
+        "DEF": 0.5,
+        "SPA": 2.0,
+        "SPD": 0.25,
+        "SPE": 3.0
+    }
+)
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-
-    draw_status_box()
-    pygame.display.flip()
-    clock.tick(60)
+# Save the result
+output_path = "pokemon_hud.png"
+img.save(output_path)
+print(f"Successfully generated Pokémon HUD at {output_path}")
