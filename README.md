@@ -99,12 +99,3 @@ If you use this code in your project (modified or unmodified), you **must** incl
 **Example Attribution:**  
 > "This project uses the Pokémon HUD Generator by Crazy Pokeking / Crazy-Ledend.  
 > Source: [github.com/Crazy-Ledend/Health-Bar](https://github.com/Crazy-Ledend/Health-Bar)"  
-
----
-
-### Why?  
-- Ensures your work is recognized.  
-- Helps others find the original source.  
-- Keeps it open-source friendly!  
-
-Let me know if you'd like to adjust the wording (e.g., add a license badge or stricter terms).
