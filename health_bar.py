@@ -1,3 +1,5 @@
+# hp_bar.py
+
 from PIL import Image, ImageDraw, ImageFont
 import os
 
@@ -19,9 +21,9 @@ PALE_RED = (255, 229, 224, 255)
 # Fonts
 def load_fonts():
     try:
-        name_font = ImageFont.truetype("arialbd.ttf", 26)
-        main_font = ImageFont.truetype("arial.ttf", 20)
-        stat_font = ImageFont.truetype("arial.ttf", 17)
+        name_font = ImageFont.truetype("verdana.ttf", 26)
+        main_font = ImageFont.truetype("trebuc.ttf", 20) # Changed from 24 to 20 for better fit
+        stat_font = ImageFont.truetype("verdana.ttf", 17)
     except:
         name_font = ImageFont.load_default()
         main_font = ImageFont.load_default()
@@ -43,7 +45,7 @@ def get_hp_color(ratio):
     return GREEN if ratio > 0.66 else YELLOW if ratio > 0.33 else RED
 
 def get_light_color(ratio):
-    return LIGHT_GREEN if ratio > 0.45 else LIGHT_YELLOW if ratio > 0.2 else LIGHT_RED
+    return LIGHT_GREEN if ratio > 0.66 else LIGHT_YELLOW if ratio > 0.33 else LIGHT_RED # return LIGHT_GREEN if ratio > 0.45 else LIGHT_YELLOW if ratio > 0.2 else LIGHT_RED
 
 def draw_rounded_rectangle(draw, xy, radius, fill=None, outline=None, width=1):
     x1, y1, x2, y2 = xy
@@ -84,33 +86,21 @@ def draw_stat_boxes(draw, stat_changes, x, y, font):
     spacing_y = 28
     box_width = 65
     box_height = 24
-    
-    # Standard stat order
-    stat_order = ['HP', 'ATK', 'DEF', 'SPA', 'SPD', 'SPE']
-    
-    # Convert input to uppercase and filter unchanged stats
-    stat_changes = {k.upper(): v for k, v in stat_changes.items()}
-    filtered_stats = [(stat, stat_changes[stat]) for stat in stat_order 
-                     if stat in stat_changes and stat_changes[stat] != 1.0]
-    
-    for i, (stat, val) in enumerate(filtered_stats):
+    filtered = [(k, v) for k, v in stat_changes.items() if v != 1.0]
+    for i, (stat, val) in enumerate(filtered):
         col, row = i % 3, i // 3
         bx = x + col * (spacing_x + 15)
         by = y + row * spacing_y
 
-        bg, border, txt = ((PALE_GREEN, GREEN, GREEN) if val > 1.0 
-                          else (PALE_RED, RED, RED))
-        
-        # Draw stat box
+        bg, border, txt = ((PALE_GREEN, GREEN, GREEN) if val > 1.0 else (PALE_RED, RED, RED))
         draw_rounded_rectangle(draw, (bx, by, bx + box_width + 14, by + box_height), 6, fill=border)
         draw_rounded_rectangle(draw, (bx + 1, by + 1, bx + box_width + 13, by + box_height - 1), 5, fill=bg)
 
-        # Draw stat text
         label = f"{val:.1f}x{stat}"
         tw = font.getlength(label)
         draw.text((bx + (box_width + 14 - tw) / 2, by + 2), label, fill=txt, font=font)
 
-def generate_hud(name, level, current_hp, max_hp, status=None, stat_changes=None):
+def generate_hud(name, level, current_hp, max_hp, status=None, stat_changes=None): # HP bar progress generator, status effects and stat changes
     name_font, main_font, stat_font = load_fonts()
     ratio = current_hp / max_hp if max_hp else 0
 
@@ -121,15 +111,11 @@ def generate_hud(name, level, current_hp, max_hp, status=None, stat_changes=None
     draw_rounded_rectangle(draw, (0, 0, 450, 100), 16, fill=BLACK_30)
     draw_rounded_rectangle(draw, (25, 10, 425, 90), 16, fill=WHITE_30)
 
-    # Name and Level
     draw.text((40, 15), name.title(), font=name_font, fill=BLACK)
     draw.text((300, 15), f"Lvl: {level}", font=name_font, fill=BLACK)
-    
-    # HP Bar
     draw_hp_bar(draw, 40, 55, 280, 22, ratio)
     draw.text((325, 53), f"[{current_hp} / {max_hp}]", font=main_font, fill=WHITE)
 
-    # Status and Stat Changes
     if status:
         color = get_status_color(status)
         padding = 10
@@ -139,29 +125,9 @@ def generate_hud(name, level, current_hp, max_hp, status=None, stat_changes=None
         draw_rounded_rectangle(draw, (55, 95, 60 + box_w, 85 + box_h), 10, fill=color)
         draw.text((60 + padding, 95), status_txt, font=main_font, fill=WHITE)
 
-    if stat_changes:
-        start_x = 60 + box_w + 10 if status else 60
-        draw_stat_boxes(draw, stat_changes, start_x, 93, stat_font)
+        if stat_changes:
+            draw_stat_boxes(draw, stat_changes, 60 + box_w + 10, 93, stat_font)
+    elif stat_changes:
+        draw_stat_boxes(draw, stat_changes, 60, 93, stat_font)
 
     return img
-
-# Example usage with all stats
-# REPLACE THESE VALUES WITH THE ACTUAL POKE DETAILS
-img = generate_hud(
-    name="Pikachu",
-    level=35,
-    current_hp=75,
-    max_hp=100,
-    status="FRZ",
-    stat_changes={
-        "HP": 1.0,
-        "ATK": 1.5, 
-        "DEF": 0.5,
-        "SPA": 2.0,
-        "SPD": 0.25,
-        "SPE": 3.0
-    }
-)
-
-# Returns the image
-return img
