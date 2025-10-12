@@ -8,7 +8,9 @@ A Python script that generates a Pokémon-style battle HUD (Heads-Up Display) us
 - Customizable Pokémon name and level  
 - Dynamic HP bar with color changes based on remaining HP  
 - Status condition display (PAR, BRN, PSN, TOX, SLP, FRZ)  
-- Stat change indicators (boosts/reductions)  
+- Stat change indicators (boosts/reductions)
+- Field hazard display (Stealth Rock, Spikes, Toxic Spikes, Sticky Web)
+- Screen and field condition indicators (Reflect, Light Screen, Aurora Veil, Tailwind, etc.)
 - Clean, rounded UI elements  
 
 ## Requirements  
@@ -53,12 +55,42 @@ img.save("pokemon_hud.png")
 | `max_hp`      | int    | Maximum HP value                     | Yes      |
 | `status`      | str    | Status condition (PAR/BRN/PSN/etc.)  | No       |
 | `stat_changes`| dict   | Dictionary of stat modifiers         | No       |
+| `hazards`      | dict | Field hazards (Stealth Rock, Spikes, etc.)     | No       |
+| `screens`      | dict | Field/screen effects (Reflect, Tailwind, etc.) | No       |
 
 ## Stat Change Format  
 Pass stat changes as a dictionary with keys:  
 - `HP`, `ATK`, `DEF`, `SPA`, `SPD`, `SPE`  
 
 Values should be multipliers (e.g., `1.5` for +1 stage, `0.5` for -1 stage)  
+
+## Hazards Format
+
+Example:
+
+```python
+hazards = {
+    "rocks": True,
+    "spikes": 3,         # 1–3 layers
+    "toxic_spikes": 2,   # 1–2 layers
+    "sticky_web": True
+}
+```
+
+Each enabled hazard is represented visually on the HUD beneath the Pokémon’s HP bar.
+
+## Screens Format
+
+Example:
+
+```python
+screens = {
+    "reflect": True,
+    "light_screen": True,
+    "aurora_veil": False,
+    "tailwind": True
+}
+```
 
 ## Customization  
 You can modify:  
