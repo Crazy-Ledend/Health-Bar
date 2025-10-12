@@ -70,10 +70,10 @@ Example:
 
 ```python
 battle_effects = [
-    "rocks",
-    "spikes",
-    "toxic_spikes",
-    "aurora_viel"
+    "STEALTH_ROCKS",
+    "SPIKES",
+    "TOXIC_SPIKES",
+    "AURORA_VEIL"
 ]
 ```
 
