@@ -64,32 +64,17 @@ Pass stat changes as a dictionary with keys:
 
 Values should be multipliers (e.g., `1.5` for +1 stage, `0.5` for -1 stage)  
 
-## Hazards Format
+## Hazards / Screen Formats
 
 Example:
 
 ```python
-hazards = {
-    "rocks": True,
-    "spikes": 3,         # 1–3 layers
-    "toxic_spikes": 2,   # 1–2 layers
-    "sticky_web": True
-}
-```
-
-Each enabled hazard is represented visually on the HUD beneath the Pokémon’s HP bar.
-
-## Screens Format
-
-Example:
-
-```python
-screens = {
-    "reflect": True,
-    "light_screen": True,
-    "aurora_veil": False,
-    "tailwind": True
-}
+battle_effects = [
+    "rocks",
+    "spikes",
+    "toxic_spikes",
+    "aurora_viel"
+]
 ```
 
 ## Customization  
